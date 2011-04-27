@@ -1,0 +1,19 @@
+h1. Plugin de Usuarios para CakePHP
+
+http://github.com/plastic/usuarios
+
+h2. Definição:
+
+* Plugin que habilita o CRUD de usuários com testes unitários
+
+h3. Instalação:
+
+* Copie os arquivos para a pasta app/plugins/usuarios.
+* Rode o comando no bake para gerar a tabela no banco
+  
+  on Cakephp 1.3
+		@cake schema create -path app/plugins/usuarios/config/schema -name usuarios@
+
+h3. Modo de usar:
+
+Basta acessar a url http://mydomain.com/usuarios
