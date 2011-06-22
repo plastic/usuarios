@@ -49,99 +49,12 @@ class Usuario extends UsuariosAppModel
 			$this->Auth = new AuthComponent(null);
 			$this->data[$this->alias]['senha'] = $this->Auth->password($this->data[$this->alias]['senha']);
 		}
+		
+		if( !empty($this->data[$this->alias]['nascimento']) ) 
+			$this->data[$this->alias]['nascimento'] = $this->dateFormatBeforeSave($this->data[$this->alias]['nascimento']);
+		else
+			unset($this->data[$this->alias]['nascimento']);
 		return true;
-	}
-	
-	public function add($data = null) 
-	{
-		if (!empty($data)) 
-		{
-			$this->create();
-			$result = $this->save($data);
-			if ($result !== false) {
-				$this->data = array_merge($data, $result);
-				return true;
-			} else {
-				throw new OutOfBoundsException(__('Could not save the usuario, please check your inputs.', true));
-			}
-			return $return;
-		}
-	}
-
-	public function edit($id = null, $data = null) 
-	{
-		$usuario = $this->find('first', array(
-			'conditions' => array(
-				"{$this->alias}.{$this->primaryKey}" => $id,
-			)
-		));
-	
-		if (empty($usuario)) {
-			throw new OutOfBoundsException(__('Invalid Usuario', true));
-		}
-		
-		$this->set($usuario);
-		
-		if (!empty($data)) 
-		{
-			$this->set($data);
-			$result = $this->save(null, true);
-			if ($result) {
-				$this->data = $result;
-				return true;
-			} else {
-				return $data;
-			}
-		} else {
-			return $usuario;
-		}
-	}
-
-	public function view($id = null) 
-	{
-		$usuario = $this->find('first', array(
-			'conditions' => array(
-				"{$this->alias}.{$this->primaryKey}" => $id
-			)
-		));
-		
-		if (empty($usuario)) {
-			throw new OutOfBoundsException(__('Invalid Usuario', true));
-		}
-		
-		return $usuario;
-	}
-
-	public function validateAndDelete($id = null, $data = array()) 
-	{
-		$usuario = $this->find('first', array(
-			'conditions' => array(
-				"{$this->alias}.{$this->primaryKey}" => $id,
-				)
-		));
-		
-		if (empty($usuario)) {
-			throw new OutOfBoundsException(__('Invalid Usuario', true));
-		}
-		
-		$this->data['usuario'] = $usuario;
-		if (!empty($data)) {
-			$data['Usuario']['id'] = $id;
-			$tmp = $this->validate;
-			$this->validate = array(
-				'id' => array('rule' => 'notEmpty'),
-				'confirm' => array('rule' => '[1]')
-			);
-			
-			$this->set($data);
-			if ($this->validates()) {
-				if ($this->delete($data['Usuario']['id'])) {
-					return true;
-				}
-			}
-			$this->validate = $tmp;
-			throw new Exception(__('You need to confirm to delete this Usuario', true));
-		}
 	}
 	
 	public function equalFields($data = null, $field1 = null, $field2 = null) 
@@ -150,6 +63,33 @@ class Usuario extends UsuariosAppModel
 			return $data[$field1] == $this->data[$this->alias][$field2];
 		else
 			return false;
+	}
+	
+	public function dateFormatBeforeSave($dateString) 
+	{
+		if ( !empty($dateString) ) 
+		{
+			return preg_replace('/(\d{2})\/(\d{2})\/(\d{4})/', '$3-$2-$1', $dateString);
+		}
+		return false;
+	}
+	
+	public function afterFind($results) 
+	{
+		foreach ($results as $key => $val) 
+		{
+			if (!empty($val[$this->alias])) {
+				if (isset($val[$this->alias]['created']) || !empty($val[$this->alias]['created'])) {
+					$results[$key][$this->alias]['created'] = $this->dateFormatAfterFind($val[$this->alias]['created']);
+				}
+			}
+		}
+		return $results;
+	}
+	
+	public function dateFormatAfterFind($dateString)
+	{
+		return date('d/m/Y', strtotime($dateString));
 	}
 	
 }
